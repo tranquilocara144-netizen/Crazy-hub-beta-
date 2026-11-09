@@ -866,19 +866,58 @@ function CGang:MakeWindow(config)
             if Screen and Screen.Parent then Screen:Destroy() end
         end
 
-        -- A janela ja nasce visivel; Init e mantido por compatibilidade Orion.
-        return Window
+        -- Retorna a aba criada para permitir tab:AddButton/Slider/etc.
+        return Tab
     end
 
-    function CGang:Init()
-        return true
-    end
-
+    -- Retorna a janela criada.
     return Window
 end
 
 function CGang:Init()
     return true
+end
+
+-- Cria uma janela simples para testar a biblioteca quando ela for executada sozinha.
+function CGang:CreateDefaultWindow()
+    local window = self:MakeWindow({
+        Name = "C-GANG LIB"
+    })
+
+    local tab = window:MakeTab({Name = "INÍCIO"})
+    tab:AddParagraph(
+        "C-Gang Lib carregada!",
+        "A biblioteca abriu corretamente. Agora você pode usar os componentes da API normalmente."
+    )
+    tab:AddButton({
+        Name = "Testar notificação",
+        Callback = function()
+            CGang:MakeNotification({
+                Name = "C-Gang Lib",
+                Content = "A interface está funcionando!",
+                Time = 3
+            })
+        end
+    })
+
+    return window
+end
+
+-- Para usar somente como biblioteca dentro de outro hub, defina
+-- getgenv().CGANG_NO_AUTO_OPEN = true antes de executar este arquivo.
+local noAutoOpen = false
+pcall(function()
+    local env = (type(getgenv) == "function" and getgenv()) or _G
+    noAutoOpen = env.CGANG_NO_AUTO_OPEN == true
+end)
+
+if not noAutoOpen then
+    local ok, err = pcall(function()
+        CGang:CreateDefaultWindow()
+    end)
+    if not ok then
+        warn("[C-Gang Lib] Falha ao abrir a interface: " .. tostring(err))
+    end
 end
 
 return CGang
