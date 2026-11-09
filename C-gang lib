@@ -525,89 +525,45 @@ function CGang:MakeWindow(config)
             if increment <= 0 then increment = 1 end
             local value = math.clamp(tonumber(data.Default) or min, min, max)
 
-            local frame = makeElement(Page, 62)
-            local nameLabel = create("TextLabel", {
-                Size = UDim2.new(1, -20, 0, 20),
+            local frame = makeElement(Page, 60)
+            local label = create("TextLabel", {
+                Size = UDim2.new(1, -20, 0, 24),
                 Position = UDim2.fromOffset(10, 2),
                 BackgroundTransparency = 1,
-                Text = tostring(data.Name or "Slider"),
+                Text = tostring(data.Name or "Slider") .. ": " .. tostring(value),
                 TextColor3 = Theme.Text,
                 Font = Enum.Font.Gotham,
                 TextSize = 12,
                 TextXAlignment = Enum.TextXAlignment.Left
             }, frame)
 
-            -- Barra um pouco mais alta para o contador ficar visivel dentro dela.
             local bar = create("TextButton", {
-                Size = UDim2.new(1, -20, 0, 20),
-                Position = UDim2.fromOffset(10, 34),
+                Size = UDim2.new(1, -20, 0, 9),
+                Position = UDim2.fromOffset(10, 40),
                 BackgroundColor3 = Theme.Background,
                 Text = "",
                 BorderSizePixel = 0,
-                AutoButtonColor = false,
-                ClipsDescendants = true
+                AutoButtonColor = false
             }, frame)
             corner(bar, 10)
 
             local fill = create("Frame", {
                 Size = UDim2.new((value - min) / (max - min), 0, 1, 0),
                 BackgroundColor3 = Theme.Green,
-                BorderSizePixel = 0,
-                ZIndex = 2
+                BorderSizePixel = 0
             }, bar)
             corner(fill, 10)
-
-            -- O contador e um TextLabel com largura calculada pelo proprio texto:
-            -- nao existe uma hitbox invisivel larga sobrando em volta dos digitos.
-            local counter = create("TextLabel", {
-                Name = "SliderValue",
-                AnchorPoint = Vector2.new(0.5, 0.5),
-                Position = UDim2.new(0.5, 0, 0.5, 0),
-                Size = UDim2.fromOffset(1, 16),
-                AutomaticSize = Enum.AutomaticSize.X,
-                BackgroundTransparency = 1,
-                Text = tostring(value),
-                TextColor3 = Color3.fromRGB(255, 255, 255),
-                TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
-                TextStrokeTransparency = 0.45,
-                Font = Enum.Font.GothamBold,
-                TextSize = 11,
-                TextXAlignment = Enum.TextXAlignment.Center,
-                TextYAlignment = Enum.TextYAlignment.Center,
-                TextWrapped = false,
-                ZIndex = 3,
-                Active = false,
-                Selectable = false
-            }, bar)
-
-            local function refreshCounter()
-                counter.Text = tostring(value)
-                -- TextBounds e usado para manter a area justa ao numero exibido.
-                task.defer(function()
-                    if counter.Parent then
-                        local width = math.max(counter.TextBounds.X + 2, 5)
-                        counter.Size = UDim2.fromOffset(width, 16)
-                    end
-                end)
-            end
-
-            local function updateVisual()
-                local percent = math.clamp((value - min) / (max - min), 0, 1)
-                fill.Size = UDim2.new(percent, 0, 1, 0)
-                refreshCounter()
-            end
 
             local function setFromX(x)
                 local percent = math.clamp((x - bar.AbsolutePosition.X) / math.max(bar.AbsoluteSize.X, 1), 0, 1)
                 local raw = min + (max - min) * percent
                 value = math.clamp(min + math.floor(((raw - min) / increment) + 0.5) * increment, min, max)
-                updateVisual()
+                fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+                label.Text = tostring(data.Name or "Slider") .. ": " .. tostring(value)
                 if type(data.Callback) == "function" then
                     task.spawn(data.Callback, value)
                 end
             end
-
-            updateVisual()
 
             local sliding = false
             bar.InputBegan:Connect(function(input)
@@ -633,7 +589,9 @@ function CGang:MakeWindow(config)
             return {
                 Set = function(_, newValue)
                     value = math.clamp(tonumber(newValue) or min, min, max)
-                    updateVisual()
+                    local percent = (value - min) / (max - min)
+                    fill.Size = UDim2.new(percent, 0, 1, 0)
+                    label.Text = tostring(data.Name or "Slider") .. ": " .. tostring(value)
                     if type(data.Callback) == "function" then data.Callback(value) end
                 end,
                 Get = function() return value end
@@ -866,58 +824,19 @@ function CGang:MakeWindow(config)
             if Screen and Screen.Parent then Screen:Destroy() end
         end
 
-        -- Retorna a aba criada para permitir tab:AddButton/Slider/etc.
-        return Tab
+        -- A janela ja nasce visivel; Init e mantido por compatibilidade Orion.
+        return Window
     end
 
-    -- Retorna a janela criada.
+    function CGang:Init()
+        return true
+    end
+
     return Window
 end
 
 function CGang:Init()
     return true
-end
-
--- Cria uma janela simples para testar a biblioteca quando ela for executada sozinha.
-function CGang:CreateDefaultWindow()
-    local window = self:MakeWindow({
-        Name = "C-GANG LIB"
-    })
-
-    local tab = window:MakeTab({Name = "INÍCIO"})
-    tab:AddParagraph(
-        "C-Gang Lib carregada!",
-        "A biblioteca abriu corretamente. Agora você pode usar os componentes da API normalmente."
-    )
-    tab:AddButton({
-        Name = "Testar notificação",
-        Callback = function()
-            CGang:MakeNotification({
-                Name = "C-Gang Lib",
-                Content = "A interface está funcionando!",
-                Time = 3
-            })
-        end
-    })
-
-    return window
-end
-
--- Para usar somente como biblioteca dentro de outro hub, defina
--- getgenv().CGANG_NO_AUTO_OPEN = true antes de executar este arquivo.
-local noAutoOpen = false
-pcall(function()
-    local env = (type(getgenv) == "function" and getgenv()) or _G
-    noAutoOpen = env.CGANG_NO_AUTO_OPEN == true
-end)
-
-if not noAutoOpen then
-    local ok, err = pcall(function()
-        CGang:CreateDefaultWindow()
-    end)
-    if not ok then
-        warn("[C-Gang Lib] Falha ao abrir a interface: " .. tostring(err))
-    end
 end
 
 return CGang
