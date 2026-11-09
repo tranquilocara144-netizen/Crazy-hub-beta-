@@ -28,8 +28,7 @@ local Theme = {
     Text = Color3.fromRGB(240, 240, 240),
     Muted = Color3.fromRGB(145, 150, 150),
     Green = Color3.fromRGB(0, 255, 145),
-    Blue = Color3.fromRGB(0, 180, 255),
-    SelectedTab = Color3.fromRGB(12, 39, 28)
+    Blue = Color3.fromRGB(0, 180, 255)
 }
 
 local function create(className, properties, parent)
@@ -208,8 +207,8 @@ function CGang:MakeWindow(config)
     }, TabBar)
     create("UIPadding", {
         PaddingTop = UDim.new(0, 5),
-        PaddingLeft = UDim.new(0, 7),
-        PaddingRight = UDim.new(0, 7)
+        PaddingLeft = UDim.new(0, 4),
+        PaddingRight = UDim.new(0, 4)
     }, TabBar)
 
     local Content = create("ScrollingFrame", {
@@ -359,22 +358,15 @@ function CGang:MakeWindow(config)
         local tabName = tostring(tabConfig.Name or "TAB")
 
         local TabButton = create("TextButton", {
-            Size = UDim2.new(1, -22, 0, 36),
+            Size = UDim2.new(1, -8, 0, 34),
             BackgroundColor3 = Theme.Element,
             BorderSizePixel = 0,
             Text = tabName,
             TextColor3 = Theme.Muted,
             Font = Enum.Font.GothamBold,
-            TextSize = 11,
-            TextXAlignment = Enum.TextXAlignment.Center,
-            TextYAlignment = Enum.TextYAlignment.Center,
-            TextWrapped = false,
-            TextTruncate = Enum.TextTruncate.AtEnd,
-            AutoButtonColor = false,
-            ClipsDescendants = false
+            TextSize = 11
         }, TabBar)
-        corner(TabButton, 8)
-        local TabScale = create("UIScale", {Scale = 1}, TabButton)
+        corner(TabButton, 7)
 
         local Page = create("Frame", {
             Size = UDim2.new(1, 0, 0, 0),
@@ -395,16 +387,13 @@ function CGang:MakeWindow(config)
                 end
             end
             Page.Visible = true
-
-            -- Aba ativa: leve aumento e fundo verde bem escuro.
-            tween(TabScale, {Scale = 1.035}, 0.18)
-            tween(TabButton, {BackgroundColor3 = Theme.SelectedTab, TextColor3 = Theme.Green}, 0.18)
+            TabButton.BackgroundColor3 = Theme.Green
+            TabButton.TextColor3 = Color3.new(0, 0, 0)
 
             for _, other in ipairs(TabBar:GetChildren()) do
                 if other:IsA("TextButton") and other ~= TabButton then
-                    local otherScale = other:FindFirstChildOfClass("UIScale")
-                    if otherScale then tween(otherScale, {Scale = 1}, 0.18) end
-                    tween(other, {BackgroundColor3 = Theme.Element, TextColor3 = Theme.Muted}, 0.18)
+                    other.BackgroundColor3 = Theme.Element
+                    other.TextColor3 = Theme.Muted
                 end
             end
         end
@@ -420,34 +409,11 @@ function CGang:MakeWindow(config)
             local button = create("TextButton", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
-                Text = "",
-                TextColor3 = Theme.Text,
-                Font = Enum.Font.GothamBold,
-                TextSize = 12,
-                AutoButtonColor = false
-            }, frame)
-
-            -- Icone verde do botao padrao.
-            create("ImageLabel", {
-                Name = "ButtonIcon",
-                Size = UDim2.fromOffset(20, 20),
-                Position = UDim2.new(0, 10, 0.5, -10),
-                BackgroundTransparency = 1,
-                Image = "rbxassetid://13060727541",
-                ImageColor3 = Color3.fromRGB(105, 220, 145),
-                ScaleType = Enum.ScaleType.Fit
-            }, button)
-            create("TextLabel", {
-                Size = UDim2.new(1, -48, 1, 0),
-                Position = UDim2.fromOffset(40, 0),
-                BackgroundTransparency = 1,
                 Text = tostring(data.Name or "Button"),
                 TextColor3 = Theme.Text,
                 Font = Enum.Font.GothamBold,
-                TextSize = 12,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                TextYAlignment = Enum.TextYAlignment.Center
-            }, button)
+                TextSize = 12
+            }, frame)
 
             button.Activated:Connect(function()
                 tween(frame, {BackgroundColor3 = Theme.Green}, 0.1)
