@@ -28,7 +28,8 @@ local Theme = {
     Text = Color3.fromRGB(240, 240, 240),
     Muted = Color3.fromRGB(145, 150, 150),
     Green = Color3.fromRGB(0, 255, 145),
-    Blue = Color3.fromRGB(0, 180, 255)
+    Blue = Color3.fromRGB(0, 180, 255),
+    SelectedTab = Color3.fromRGB(12, 39, 28)
 }
 
 local function create(className, properties, parent)
@@ -207,8 +208,8 @@ function CGang:MakeWindow(config)
     }, TabBar)
     create("UIPadding", {
         PaddingTop = UDim.new(0, 5),
-        PaddingLeft = UDim.new(0, 4),
-        PaddingRight = UDim.new(0, 4)
+        PaddingLeft = UDim.new(0, 7),
+        PaddingRight = UDim.new(0, 7)
     }, TabBar)
 
     local Content = create("ScrollingFrame", {
@@ -358,15 +359,22 @@ function CGang:MakeWindow(config)
         local tabName = tostring(tabConfig.Name or "TAB")
 
         local TabButton = create("TextButton", {
-            Size = UDim2.new(1, -8, 0, 34),
+            Size = UDim2.new(1, -22, 0, 36),
             BackgroundColor3 = Theme.Element,
             BorderSizePixel = 0,
             Text = tabName,
             TextColor3 = Theme.Muted,
             Font = Enum.Font.GothamBold,
-            TextSize = 11
+            TextSize = 11,
+            TextXAlignment = Enum.TextXAlignment.Center,
+            TextYAlignment = Enum.TextYAlignment.Center,
+            TextWrapped = false,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            AutoButtonColor = false,
+            ClipsDescendants = false
         }, TabBar)
-        corner(TabButton, 7)
+        corner(TabButton, 8)
+        local TabScale = create("UIScale", {Scale = 1}, TabButton)
 
         local Page = create("Frame", {
             Size = UDim2.new(1, 0, 0, 0),
@@ -387,13 +395,16 @@ function CGang:MakeWindow(config)
                 end
             end
             Page.Visible = true
-            TabButton.BackgroundColor3 = Theme.Green
-            TabButton.TextColor3 = Color3.new(0, 0, 0)
+
+            -- Aba ativa: leve aumento e fundo verde bem escuro.
+            tween(TabScale, {Scale = 1.035}, 0.18)
+            tween(TabButton, {BackgroundColor3 = Theme.SelectedTab, TextColor3 = Theme.Green}, 0.18)
 
             for _, other in ipairs(TabBar:GetChildren()) do
                 if other:IsA("TextButton") and other ~= TabButton then
-                    other.BackgroundColor3 = Theme.Element
-                    other.TextColor3 = Theme.Muted
+                    local otherScale = other:FindFirstChildOfClass("UIScale")
+                    if otherScale then tween(otherScale, {Scale = 1}, 0.18) end
+                    tween(other, {BackgroundColor3 = Theme.Element, TextColor3 = Theme.Muted}, 0.18)
                 end
             end
         end
@@ -409,11 +420,34 @@ function CGang:MakeWindow(config)
             local button = create("TextButton", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
+                Text = "",
+                TextColor3 = Theme.Text,
+                Font = Enum.Font.GothamBold,
+                TextSize = 12,
+                AutoButtonColor = false
+            }, frame)
+
+            -- Icone verde do botao padrao.
+            create("ImageLabel", {
+                Name = "ButtonIcon",
+                Size = UDim2.fromOffset(20, 20),
+                Position = UDim2.new(0, 10, 0.5, -10),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://13060727541",
+                ImageColor3 = Color3.fromRGB(105, 220, 145),
+                ScaleType = Enum.ScaleType.Fit
+            }, button)
+            create("TextLabel", {
+                Size = UDim2.new(1, -48, 1, 0),
+                Position = UDim2.fromOffset(40, 0),
+                BackgroundTransparency = 1,
                 Text = tostring(data.Name or "Button"),
                 TextColor3 = Theme.Text,
                 Font = Enum.Font.GothamBold,
-                TextSize = 12
-            }, frame)
+                TextSize = 12,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextYAlignment = Enum.TextYAlignment.Center
+            }, button)
 
             button.Activated:Connect(function()
                 tween(frame, {BackgroundColor3 = Theme.Green}, 0.1)
@@ -491,12 +525,12 @@ function CGang:MakeWindow(config)
             if increment <= 0 then increment = 1 end
             local value = math.clamp(tonumber(data.Default) or min, min, max)
 
-            local frame = makeElement(Page, 60)
-            local label = create("TextLabel", {
-                Size = UDim2.new(1, -20, 0, 24),
+            local frame = makeElement(Page, 58)
+            create("TextLabel", {
+                Size = UDim2.new(1, -20, 0, 20),
                 Position = UDim2.fromOffset(10, 2),
                 BackgroundTransparency = 1,
-                Text = tostring(data.Name or "Slider") .. ": " .. tostring(value),
+                Text = tostring(data.Name or "Slider"),
                 TextColor3 = Theme.Text,
                 Font = Enum.Font.Gotham,
                 TextSize = 12,
@@ -504,31 +538,64 @@ function CGang:MakeWindow(config)
             }, frame)
 
             local bar = create("TextButton", {
-                Size = UDim2.new(1, -20, 0, 9),
-                Position = UDim2.fromOffset(10, 40),
+                Size = UDim2.new(1, -20, 0, 16),
+                Position = UDim2.fromOffset(10, 31),
                 BackgroundColor3 = Theme.Background,
                 Text = "",
                 BorderSizePixel = 0,
-                AutoButtonColor = false
+                AutoButtonColor = false,
+                ClipsDescendants = true
             }, frame)
             corner(bar, 10)
 
             local fill = create("Frame", {
                 Size = UDim2.new((value - min) / (max - min), 0, 1, 0),
                 BackgroundColor3 = Theme.Green,
-                BorderSizePixel = 0
+                BorderSizePixel = 0,
+                ZIndex = bar.ZIndex + 1
             }, bar)
             corner(fill, 10)
 
-            local function setFromX(x)
-                local percent = math.clamp((x - bar.AbsolutePosition.X) / math.max(bar.AbsoluteSize.X, 1), 0, 1)
-                local raw = min + (max - min) * percent
-                value = math.clamp(min + math.floor(((raw - min) / increment) + 0.5) * increment, min, max)
-                fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
-                label.Text = tostring(data.Name or "Slider") .. ": " .. tostring(value)
-                if type(data.Callback) == "function" then
+            -- O contador fica sobre a barra. AutomaticSize faz a area do
+            -- TextLabel acompanhar somente a largura real dos caracteres.
+            local counter = create("TextLabel", {
+                Name = "SliderValue",
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                Size = UDim2.fromOffset(0, 0),
+                AutomaticSize = Enum.AutomaticSize.XY,
+                BackgroundTransparency = 1,
+                Text = tostring(value),
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+                TextStrokeTransparency = 0.35,
+                Font = Enum.Font.GothamBold,
+                TextSize = 11,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                TextYAlignment = Enum.TextYAlignment.Center,
+                Active = false,
+                Selectable = false,
+                ZIndex = bar.ZIndex + 2
+            }, bar)
+
+            local function updateValue(newValue, callCallback)
+                value = math.clamp(newValue, min, max)
+                local percent = (value - min) / (max - min)
+                fill.Size = UDim2.new(percent, 0, 1, 0)
+                counter.Text = tostring(value)
+                if callCallback and type(data.Callback) == "function" then
                     task.spawn(data.Callback, value)
                 end
+            end
+
+            local function setFromX(x)
+                local percent = math.clamp(
+                    (x - bar.AbsolutePosition.X) / math.max(bar.AbsoluteSize.X, 1),
+                    0, 1
+                )
+                local raw = min + (max - min) * percent
+                local stepped = min + math.floor(((raw - min) / increment) + 0.5) * increment
+                updateValue(math.clamp(stepped, min, max), true)
             end
 
             local sliding = false
@@ -539,12 +606,14 @@ function CGang:MakeWindow(config)
                     setFromX(input.Position.X)
                 end
             end)
+
             UserInputService.InputChanged:Connect(function(input)
                 if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement
                 or input.UserInputType == Enum.UserInputType.Touch) then
                     setFromX(input.Position.X)
                 end
             end)
+
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1
                 or input.UserInputType == Enum.UserInputType.Touch then
@@ -554,11 +623,9 @@ function CGang:MakeWindow(config)
 
             return {
                 Set = function(_, newValue)
-                    value = math.clamp(tonumber(newValue) or min, min, max)
-                    local percent = (value - min) / (max - min)
-                    fill.Size = UDim2.new(percent, 0, 1, 0)
-                    label.Text = tostring(data.Name or "Slider") .. ": " .. tostring(value)
-                    if type(data.Callback) == "function" then data.Callback(value) end
+                    local numeric = tonumber(newValue) or min
+                    local stepped = min + math.floor(((numeric - min) / increment) + 0.5) * increment
+                    updateValue(math.clamp(stepped, min, max), true)
                 end,
                 Get = function() return value end
             }
