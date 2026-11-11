@@ -118,7 +118,7 @@ Create("TextLabel", {
     Position = UDim2.fromOffset(12, 0),
     Size = UDim2.new(1, -100, 1, 0),
     BackgroundTransparency = 1,
-    Text = "C-Gang Lib",
+    Text = "Crazy Hub",
     TextColor3 = GREEN,
     TextSize = 19,
     Font = Enum.Font.GothamBold,
