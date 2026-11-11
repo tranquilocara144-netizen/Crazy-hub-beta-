@@ -82,7 +82,7 @@ if old then
 end
 
 local Screen = Create("ScreenGui", {
-    Name = "CGangLib",
+    Name = "Crazy Hub",
     ResetOnSpawn = false,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 }, CoreGui)
