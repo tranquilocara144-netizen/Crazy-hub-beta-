@@ -1,0 +1,683 @@
+-- CRAZY HUB 📗⚒️ | C-GANG EDITION
+
+-- ================== SERVICES ==================
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+local VirtualUser = game:GetService("VirtualUser")
+local RunService = game:GetService("RunService")
+
+-- ================== CARREGAR C-GANG LIB ==================
+local success, Library = pcall(function()
+    return loadstring(game:HttpGet(
+        "https://raw.githubusercontent.com/tranquilocara144-netizen/Crazy-hub-beta-/refs/heads/main/C-gang%20lib%20pc%20edtion"
+    ))()
+end)
+
+if not success or type(Library) ~= "table" then
+    warn("[CRAZY HUB] Erro ao carregar C-Gang Lib:", Library)
+    return
+end
+
+-- ================== CRIAR JANELA ==================
+local Window = Library:CreateWindow({
+    Name = "CRAZY HUB 📗"
+})
+
+-- ================== NOTIFICAÇÕES ==================
+local function Notify(txt)
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "CRAZY HUB 📗",
+            Text = tostring(txt),
+            Duration = 4
+        })
+    end)
+
+    print("[CRAZY HUB] " .. tostring(txt))
+end
+
+-- ================== ABAS ==================
+local PlayerTab   = Window:AddTab({Name = "JOGADOR"})
+local TeleportTab = Window:AddTab({Name = "TELEPORT"})
+local ScriptsTab  = Window:AddTab({Name = "SCRIPTS"})
+local KillTab     = Window:AddTab({Name = "KILL"})
+local GamesTab    = Window:AddTab({Name = "GAMES"})
+local ToolsTab    = Window:AddTab({Name = "TOOLS"})
+local DevTab      = Window:AddTab({Name = "DEV"})
+local MusicTab    = Window:AddTab({Name = "MUSIC"})
+local CreditsTab  = Window:AddTab({Name = "CRÉDITOS"})
+
+-- ================== FUNÇÕES PLAYER ==================
+local function GetHumanoid()
+    local char = Player.Character or Player.CharacterAdded:Wait()
+    return char:FindFirstChildOfClass("Humanoid")
+end
+
+local function GetRoot()
+    local char = Player.Character
+    return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+-- ================== PLAYER ==================
+
+PlayerTab:AddSlider({
+    Name = "WalkSpeed",
+    Min = 1,
+    Max = 300,
+    Default = 16,
+    Increment = 1,
+    Callback = function(Value)
+        local hum = GetHumanoid()
+        if hum then
+            hum.WalkSpeed = Value
+        end
+    end
+})
+
+PlayerTab:AddSlider({
+    Name = "JumpPower",
+    Min = 1,
+    Max = 300,
+    Default = 50,
+    Increment = 1,
+    Callback = function(Value)
+        local hum = GetHumanoid()
+        if hum then
+            hum.UseJumpPower = true
+            hum.JumpPower = Value
+        end
+    end
+})
+
+PlayerTab:AddSlider({
+    Name = "Gravity",
+    Min = 1,
+    Max = 500,
+    Default = 196,
+    Increment = 1,
+    Callback = function(Value)
+        workspace.Gravity = Value
+    end
+})
+
+PlayerTab:AddParagraphCenter({
+    Text = "----- LOCOMOÇÃO -----"
+})
+
+PlayerTab:AddButton({
+    Name = "FLY",
+    Callback = function()
+        local ok, err = pcall(function()
+            loadstring(game:HttpGet(
+                "https://pastebin.com/raw/GSb9JLkm"
+            ))()
+        end)
+
+        if not ok then
+            Notify("Erro ao carregar Fly")
+            warn(err)
+        end
+    end
+})
+
+-- ================== NOCLIP ==================
+local Noclip = false
+
+RunService.Stepped:Connect(function()
+    if Noclip and Player.Character then
+        for _, v in ipairs(Player.Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = false
+            end
+        end
+    end
+end)
+
+PlayerTab:AddToggle({
+    Name = "NOCLIP",
+    Default = false,
+    Callback = function(Value)
+        Noclip = Value
+        Notify(Value and "Noclip ligado" or "Noclip desligado")
+    end
+})
+
+-- ================== ESP ==================
+local ESP = false
+
+local function UpdateESP()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= Player and plr.Character then
+            local char = plr.Character
+            local existing = char:FindFirstChild("CrazyESP")
+
+            if ESP then
+                if not existing then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Name = "CrazyESP"
+                    highlight.FillColor = Color3.fromRGB(0, 255, 0)
+                    highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
+                    highlight.FillTransparency = 0.5
+                    highlight.OutlineTransparency = 0
+                    highlight.Parent = char
+                end
+            elseif existing then
+                existing:Destroy()
+            end
+        end
+    end
+end
+
+PlayerTab:AddToggle({
+    Name = "ESP",
+    Default = false,
+    Callback = function(Value)
+        ESP = Value
+        UpdateESP()
+    end
+})
+
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function()
+        task.wait(1)
+        UpdateESP()
+    end)
+end)
+
+for _, plr in ipairs(Players:GetPlayers()) do
+    if plr ~= Player then
+        plr.CharacterAdded:Connect(function()
+            task.wait(1)
+            UpdateESP()
+        end)
+    end
+end
+
+PlayerTab:AddButton({
+    Name = "RESET PLAYER",
+    Callback = function()
+        local hum = GetHumanoid()
+        if hum then
+            hum.Health = 0
+        end
+    end
+})
+
+-- ================== TELEPORT ==================
+local TPQuery = ""
+
+TeleportTab:AddTextbox({
+    Name = "Nick do jogador",
+    Placeholder = "Digite o nick...",
+    Callback = function(Value)
+        TPQuery = Value
+    end
+})
+
+TeleportTab:AddButton({
+    Name = "TELEPORTAR",
+    Callback = function()
+        local query = TPQuery:lower():gsub("^%s*(.-)%s*$", "%1")
+
+        if query == "" then
+            Notify("Digite o nick de um jogador")
+            return
+        end
+
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= Player and plr.Name:lower():sub(1, #query) == query then
+                local target = plr.Character
+                local targetRoot = target and target:FindFirstChild("HumanoidRootPart")
+                local myRoot = GetRoot()
+
+                if targetRoot and myRoot then
+                    myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, -3)
+                    Notify("Teleportado para " .. plr.Name)
+                    return
+                end
+            end
+        end
+
+        Notify("Jogador não encontrado")
+    end
+})
+
+TeleportTab:AddParagraphCenter({
+    Text = "----- SEM ALVO DIRETO -----"
+})
+
+TeleportTab:AddButton({
+    Name = "TP CLICK",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://rawscripts.net/raw/Universal-Script-Click-TP-75893"
+        ))()
+    end
+})
+
+TeleportTab:AddButton({
+    Name = "TP CORD i-DIMENSION",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/tranquilocara144-netizen/script-da-cr4zy-team-/refs/heads/main/Telepoorte%20cord"
+        ))()
+    end
+})
+
+-- ================== SCRIPTS ==================
+ScriptsTab:AddParagraphCenter({
+    Text = "----- ADMIN SCRIPTS -----"
+})
+
+ScriptsTab:AddButton({
+    Name = "Infinite Yield",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"
+        ))()
+    end
+})
+
+ScriptsTab:AddButton({
+    Name = "Nameless Admin",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://rawscripts.net/raw/Universal-Script-Nameless-admin-reworked-75477"
+        ))()
+    end
+})
+
+ScriptsTab:AddParagraphCenter({
+    Text = "----- SCRIPTS PODEROSOS -----"
+})
+
+ScriptsTab:AddButton({
+    Name = "lyra (Brookhaven)",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/kayrus999/Lyrapainel/refs/heads/main/Lyrabrookhaven"
+        ))()
+    end
+})
+
+ScriptsTab:AddParagraphCenter({
+    Text = "----- SCRIPTS ÚTEIS -----"
+})
+
+ScriptsTab:AddButton({
+    Name = "Cool Clan",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://pastebin.com/raw/14EU4i8n",
+            true
+        ))()
+    end
+})
+
+ScriptsTab:AddButton({
+    Name = "dark dex",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://rawscripts.net/raw/Universal-Script-DEX-v3-64454"
+        ))()
+    end
+})
+
+ScriptsTab:AddButton({
+    Name = "Key board",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/Xxtan31/Ata/main/deltakeyboardcrack.txt",
+            true
+        ))()
+    end
+})
+
+ScriptsTab:AddButton({
+    Name = "fly car",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/sakzjdd/La/refs/heads/main/Protected_1963675376947733.lua.txt"
+        ))()
+    end
+})
+
+ScriptsTab:AddButton({
+    Name = "Cool-gui lite (feito por mim)",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://pastebin.com/raw/iEjf3WMv",
+            true
+        ))()
+    end
+})
+
+-- ================== KILL ==================
+KillTab:AddParagraph({
+    Title = "CRAZY HUB",
+    Content = "Área de scripts de efeitos e morphs. Os comandos de fling em massa foram retirados desta versão."
+})
+
+KillTab:AddParagraphCenter({
+    Text = "----- TEMPLARIOS HUB -----"
+})
+
+KillTab:AddButton({
+    Name = "Templarios Hub Mapa do felipe",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/TemplariosScripts/Templarios-Hub-Mapa-do-Felipe-/main/TemplariosHubMapaDoFelipe.txt"
+        ))()
+    end
+})
+
+KillTab:AddParagraphCenter({
+    Text = "----- MORPH -----"
+})
+
+KillTab:AddButton({
+    Name = "FE Goner | Normal",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://rawscripts.net/raw/Universal-Script-FE-Goner-Scrpit-82044"
+        ))()
+    end
+})
+
+KillTab:AddButton({
+    Name = "FE AK47 | By Genesis FE",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://rawscripts.net/raw/Universal-Script-FE-AK47-10851"
+        ))()
+    end
+})
+
+KillTab:AddButton({
+    Name = "FE Star Glitcher | By Genesis FE",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://rawscripts.net/raw/Universal-Script-FE-Star-Glitcher-10855"
+        ))()
+    end
+})
+
+KillTab:AddButton({
+    Name = "FE Goner | By Genesis FE",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://rawscripts.net/raw/Universal-Script-FE-Goner-10857"
+        ))()
+    end
+})
+
+KillTab:AddParagraphCenter({
+    Text = "----- OUTRAS MORPHS (EM BREVE) -----"
+})
+
+-- ================== GAMES ==================
+GamesTab:AddParagraphCenter({
+    Text = "----- GAME SCRIPTS -----"
+})
+
+GamesTab:AddButton({
+    Name = "Game Script",
+    Callback = function()
+        Notify("Adicione o link do script na seção Games")
+    end
+})
+
+-- ================== TOOLS ==================
+ToolsTab:AddButton({
+    Name = "BTOOLS",
+    Callback = function()
+        loadstring(game:GetObjects(
+            "rbxassetid://6695644299"
+        )[1].Source)()
+    end
+})
+
+ToolsTab:AddButton({
+    Name = "TP TOOL",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://pastebin.com/raw/UuDY4ReH"
+        ))()
+    end
+})
+
+ToolsTab:AddButton({
+    Name = "TELECINESE",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://rawscripts.net/raw/Universal-Script-FE-TELEKINESIS-Brookhaven-73614"
+        ))()
+    end
+})
+
+ToolsTab:AddButton({
+    Name = "GEAR GIVER",
+    Callback = function()
+        loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/Ahma174/Gear-Giver-Gui-1.5/refs/heads/main/Gear"
+        ))()
+    end
+})
+
+-- ================== DEV ==================
+local DEV_PASS = "4119"
+local unlocked = false
+local DevPass = ""
+
+DevTab:AddTextbox({
+    Name = "Senha DEV",
+    Placeholder = "Digite a senha...",
+    Callback = function(Value)
+        DevPass = Value
+    end
+})
+
+local function LoadDevScript(url)
+    local ok, err = pcall(function()
+        loadstring(game:HttpGet(url))()
+    end)
+
+    if not ok then
+        Notify("Erro ao carregar script DEV")
+        warn(err)
+    end
+end
+
+DevTab:AddButton({
+    Name = "DESBLOQUEAR DEV",
+    Callback = function()
+        if unlocked then
+            Notify("DEV já está desbloqueado")
+            return
+        end
+
+        if DevPass ~= DEV_PASS then
+            Notify("Senha errada")
+            return
+        end
+
+        unlocked = true
+        Notify("DEV desbloqueado")
+
+        DevTab:AddParagraphCenter({
+            Text = "----- DEV SCRIPTS -----"
+        })
+
+        DevTab:AddButton({
+            Name = "tiger x",
+            Callback = function()
+                LoadDevScript(
+                    "https://raw.githubusercontent.com/balintTheDevX/Tiger-X-V3/main/Tiger%20X%20V3.5%20Fixed"
+                )
+            end
+        })
+
+        DevTab:AddButton({
+            Name = "polaria hub",
+            Callback = function()
+                LoadDevScript(
+                    "https://rawscripts.net/raw/Universal-Script-Polaria-loadstring-35739"
+                )
+            end
+        })
+
+        DevTab:AddButton({
+            Name = "CRAZY ADMIN",
+            Callback = function()
+                LoadDevScript(
+                    "https://pastebin.com/raw/h0WFaVVe"
+                )
+            end
+        })
+
+        DevTab:AddButton({
+            Name = "ring parts v8",
+            Callback = function()
+                LoadDevScript(
+                    "https://pastebin.com/raw/JUYNeVtp"
+                )
+            end
+        })
+    end
+})
+
+-- ================== MUSIC ==================
+local MusicID = ""
+local CurrentSound = nil
+
+local MusicVolume = 5
+local MusicSpeed = 1
+
+MusicTab:AddParagraphCenter({
+    Text = "----- MUSIC PLAYER -----"
+})
+
+MusicTab:AddTextbox({
+    Name = "ID da Música",
+    Placeholder = "Digite o ID...",
+    Callback = function(Value)
+        MusicID = Value
+    end
+})
+
+-- ================== CONTROLES DE ÁUDIO ==================
+MusicTab:AddSlider({
+    Name = "VOLUME",
+    Min = 0,
+    Max = 10,
+    Default = 5,
+    Increment = 0.1,
+    Callback = function(Value)
+        MusicVolume = Value
+
+        if CurrentSound then
+            CurrentSound.Volume = Value
+        end
+    end
+})
+
+MusicTab:AddSlider({
+    Name = "VELOCIDADE",
+    Min = 0.1,
+    Max = 3,
+    Default = 1,
+    Increment = 0.1,
+    Callback = function(Value)
+        MusicSpeed = Value
+
+        if CurrentSound then
+            CurrentSound.PlaybackSpeed = Value
+        end
+    end
+})
+
+-- ================== FUNÇÃO TOCAR MÚSICA ==================
+local function PlayMusic(id)
+    if CurrentSound then
+        CurrentSound:Destroy()
+        CurrentSound = nil
+    end
+
+    local sound = Instance.new("Sound")
+    sound.Name = "CrazyHubMusic"
+    sound.Parent = workspace
+    sound.SoundId = "rbxassetid://" .. tostring(id)
+    sound.Volume = MusicVolume
+    sound.PlaybackSpeed = MusicSpeed
+    sound.Looped = true
+
+    CurrentSound = sound
+    sound:Play()
+
+    Notify("Música iniciada")
+end
+
+MusicTab:AddButton({
+    Name = "TOCAR MÚSICA",
+    Callback = function()
+        local id = MusicID:gsub("%s+", "")
+
+        if id == "" or not tonumber(id) then
+            Notify("Digite um ID de música válido")
+            return
+        end
+
+        PlayMusic(id)
+    end
+})
+
+-- ================== PARAR MÚSICA ==================
+MusicTab:AddButton({
+    Name = "PARAR MÚSICA DO HUB",
+    Callback = function()
+        if CurrentSound then
+            CurrentSound:Stop()
+            CurrentSound:Destroy()
+            CurrentSound = nil
+        end
+
+        Notify("Música do hub parada")
+    end
+})
+
+-- ================== MÚSICAS PRONTAS ==================
+MusicTab:AddParagraphCenter({
+    Text = "----- MÚSICAS PRONTAS -----"
+})
+
+MusicTab:AddButton({
+    Name = "Music starvation",
+    Callback = function()
+        PlayMusic("135090256319340")
+    end
+})
+
+-- ================== CRÉDITOS ==================
+CreditsTab:AddParagraph({
+    Title = "CRAZY HUB 📗⚒️",
+    Content = "Criador: crazy_child\nBiblioteca: C-Gang Lib\nEdição: C-Gang Edition\nVersão: 2026"
+})
+
+CreditsTab:AddParagraph({
+    Title = "INFORMAÇÕES",
+    Content = "O Crazy Hub utiliza a C-Gang Lib como biblioteca de interface. Alguns scripts externos podem parar de funcionar caso seus links sejam removidos ou atualizados."
+})
+
+-- ================== ANTI AFK ==================
+Player.Idled:Connect(function()
+    pcall(function()
+        VirtualUser:Button2Down(Vector2.new(0, 0))
+        task.wait(0.1)
+        VirtualUser:Button2Up(Vector2.new(0, 0))
+    end)
+end)
+
+-- ================== NOTIFICAÇÃO INICIAL ==================
+Notify("Crazy Hub carregado com a C-Gang Lib!")
+print("[CRAZY HUB] Inicialização concluída.")
