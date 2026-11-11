@@ -10,7 +10,8 @@ local RunService = game:GetService("RunService")
 -- ================== CARREGAR C-GANG LIB ==================
 local success, Library = pcall(function()
     return loadstring(game:HttpGet(
-        "https://raw.githubusercontent.com/tranquilocara144-netizen/Crazy-hub-beta-/refs/heads/main/C-gang%20lib%20pc%20edtion"
+        "loadstring(game:HttpGet("https://githubusercontent.com"))()
+"
     ))()
 end)
 
@@ -354,9 +355,25 @@ ScriptsTab:AddButton({
 })
 
 -- ================== KILL ==================
-KillTab:AddParagraph({
-    Title = "CRAZY HUB",
-    Content = "Área de scripts de efeitos e morphs. Os comandos de fling em massa foram retirados desta versão."
+KillTab:AddButton({
+    Name = "Matar Todos",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Fe-fling-all-10553"))()
+    end
+})
+
+KillTab:AddButton({
+    Name = "Kill Gui",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-FE-Fling-GUI-10927"))()
+    end
+})
+
+KillTab:AddButton({
+    Name = "Click Fling",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/0Ben1/fe/main/obf_5wpM7bBcOPspmX7lQ3m75SrYNWqxZ858ai3tJdEAId6jSI05IOUB224FQ0VSAswH.lua.txt"))()
+    end
 })
 
 KillTab:AddParagraphCenter({
